@@ -1,6 +1,6 @@
 # Template file for 'rebar3'
 pkgname=rebar3
-version=3.6.2
+version=3.7.3
 revision=1
 noarch=yes
 hostmakedepends=erlang
@@ -10,7 +10,7 @@ maintainer="Noel Cower <ncower@gmail.com>"
 license="Apache-2.0"
 homepage="https://www.rebar3.org/"
 distfiles="https://github.com/erlang/rebar3/archive/${version}.tar.gz"
-checksum=7f358170025b54301bce9a10ec7ad07d4e88a80eaa7b977b73b32b45ea0b626e
+checksum=d9bd4d7380427d11f8626bd48a7c61ff1fdb86c18ff16ce57875a82fdab98e3d
 
 do_build() {
 	./bootstrap
@@ -18,4 +18,7 @@ do_build() {
 
 do_install() {
 	vbin rebar3
+	vlicense LICENSE
+	vsconf rebar.config.sample rebar.config
+	vman manpages/rebar3.1
 }
