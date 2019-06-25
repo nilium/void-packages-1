@@ -1,0 +1,31 @@
+# Template file for 'kubernetes-helm'
+pkgname=kubernetes-helm3
+version=3.0.0.alpha1
+revision=1
+_git_commit=b9a54967f838723fe241172a6b94d18caf8bcdca
+wrksrc="helm-${_git_commit}"
+hostmakedepends="go make git dep"
+short_desc="Kubernetes Package Manager, version 3"
+maintainer="Noel Cower <ncower@gmail.com>"
+build_style=go
+go_import_path="helm.sh/helm"
+license="Apache-2.0"
+homepage="https://helm.sh/"
+distfiles="https://github.com/helm/helm/archive/${_git_commit}.tar.gz"
+checksum=afb84579fdb1ccf50e6a87667422c832981a28fdc6eded73a6cf4415a805ccc8
+conflicts="kubernetes-helm helm"
+
+pre_build() {
+	cd "${GOSRCPATH}"
+	make DEP="$(command -v dep)" bootstrap
+}
+
+do_build() {
+	cd "${GOSRCPATH}"
+	make DEP="$(command -v dep)" build
+}
+
+do_install() {
+	vbin bin/helm
+	vlicense LICENSE
+}
