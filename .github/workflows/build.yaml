@@ -1,0 +1,94 @@
+name: Build Packages
+
+on: [push, pull_request]
+# on:
+#   push:
+#     paths: ['srcpkgs/**/template']
+#   pull_request:
+#     paths: ['srcpkgs/**/template']
+
+jobs:
+  # Lint changed templates.
+  xlint:
+    runs-on: ubuntu-18.04
+
+    env:
+      PATH: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/sbin:/usr/local/bin:/tmp/bin'
+      XLINT: '1'
+      LICENSE_LIST: common/travis/license.lst
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 200
+      - name: Fetch upstream
+        run: common/travis/fetch_upstream.sh
+      - name: Merge upstream into build
+        env:
+          ACTOR: '${{ github.event.pusher.name }}'
+          EMAIL: '${{ github.event.pusher.email }}'
+        run: |
+          git config user.email "$EMAIL"
+          git config user.name "$ACTOR"
+          git merge FETCH_HEAD || :
+      - name: Get changed templates
+        run: common/travis/changed_templates.sh
+      - name: Fetch xtools
+        run: common/travis/fetch-xtools.sh
+      - name: Run xlint
+        run: common/travis/xlint.sh
+
+  # Build changed packages.
+  build:
+    runs-on: ubuntu-18.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { arch: x86_64, bootstrap: x86_64 }
+          - { arch: i686, bootstrap: i686 }
+          - { arch: aarch64, bootstrap: x86_64 }
+          - { arch: armv7l, bootstrap: x86_64 }
+          - { arch: x86_64-musl, bootstrap: x86_64-musl }
+          - { arch: armv6l-musl, bootstrap: x86_64-musl }
+          - { arch: aarch64-musl, bootstrap: x86_64-musl }
+
+    env:
+      PATH: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/sbin:/usr/local/bin:/tmp/bin'
+      XLINT: '${{ matrix.config.xlint }}'
+      LICENSE_LIST: '${{ matrix.config.licenses }}'
+      ARCH: '${{ matrix.config.arch }}'
+      BOOTSTRAP: '${{ matrix.config.bootstrap }}'
+      DOCKER_BASE: voidlinux/masterdir
+      DOCKER_NAME: 'void-${{ matrix.config.arch }}-${{ matrix.config.bootstrap }}'
+      TAG: '2019102301'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 200
+      - name: Create masterdir
+        run: common/travis/docker.sh
+      - name: Set mirrors
+        run: common/travis/set_mirror.sh
+      - name: Configure xbps-src
+        run: common/travis/prepare.sh
+      - name: Fetch upstream
+        run: common/travis/fetch_upstream.sh
+      - name: Merge upstream into build
+        env:
+          ACTOR: '${{ github.event.pusher.name }}'
+          EMAIL: '${{ github.event.pusher.email }}'
+        run: |
+          git config user.email "$EMAIL"
+          git config user.name "$ACTOR"
+          git merge FETCH_HEAD || :
+      - name: Get changed templates
+        run: common/travis/changed_templates.sh
+      - name: Build packages
+        run: docker container exec "$DOCKER_NAME" hostrepo/common/travis/build.sh "$BOOTSTRAP" "$ARCH"
+      - name: Show files
+        run: docker container exec "$DOCKER_NAME" hostrepo/common/travis/show_files.sh "$BOOTSTRAP" "$ARCH"

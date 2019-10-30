@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# install_tools.sh
+# prepare.sh
 
 [ "$XLINT" ] && exit 0
 

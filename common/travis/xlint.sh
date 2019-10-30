@@ -2,7 +2,7 @@
 #
 # xlint.sh
 
-[ "$XLINT" ] || exit 0 
+[ "$XLINT" ] || exit 0
 
 EXITCODE=0
 for t in $(awk '{ print "srcpkgs/" $0 "/template" }' /tmp/templates); do
