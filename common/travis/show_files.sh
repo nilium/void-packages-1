@@ -2,7 +2,9 @@
 #
 # show_files.sh
 
-export XBPS_TARGET_ARCH="$2" XBPS_DISTDIR=/hostrepo
+export HOSTREPO="${HOSTREPO:-$(pwd)}"
+export XBPS_TARGET_ARCH="$2" XBPS_DISTDIR="${HOSTREPO}"
+
 
 while read -r pkg; do
 	for subpkg in $(xsubpkg $pkg); do
