@@ -1,0 +1,38 @@
+# Template file for 'wings3d'
+pkgname=wings3d
+version=2.2.5
+revision=1
+depends="erlang>=0.22 erlang-wx>=0.22"
+makedepends="opencl-headers ocl-icd libGL rebar3 glu-devel erlang-wx"
+short_desc="An advanced sub-division 3D modeller"
+maintainer="Noel Cower <ncower@nil.dev>"
+license="TCL"
+homepage="http://www.wings3d.com"
+distfiles="https://github.com/dgud/wings/archive/v${version}.tar.gz
+	https://github.com/tonyrog/cl/archive/cl-1.2.4.tar.gz"
+checksum="202a11c98c532c7749fe370da69a62b5c175a3861743148f6df64389d297697c
+	577b8788029148f93217d00a1bbdc500db68ee77b2246bbd892269b5bb98c41a"
+create_wrksrc=yes
+
+post_extract() {
+	mv cl-cl-1.2.4 cl
+	mv wings-${version} wings
+}
+
+do_build() {
+	export ERL_LIBS="${wrksrc}"
+	export WINGS_VERSION="${version}_${revision}"
+
+	cd cl
+	rebar3 compile
+
+	cd "${wrksrc}/wings"
+	make
+}
+
+do_install() {
+	cd wings
+	find ebin -name '*.beam' | while read file; do
+		vinstall "$file" 644 usr/share/wings3d/ebin
+	done
+}
