@@ -1,0 +1,18 @@
+# Template file for 'pipexec'
+pkgname=pipexec
+version=2.5.5
+revision=1
+build_style=gnu-configure
+short_desc="Handling pipe of commands like a single command"
+maintainer="Noel Cower <ncower@nil.dev>"
+license="GPL-2.0-or-later"
+homepage="https://github.com/flonatel/pipexec"
+distfiles="https://github.com/flonatel/pipexec/releases/download/${version}/pipexec-${version}.tar.xz"
+checksum=d64f3043777c20df026fe44078b81b415f2e5ea6b79ebdd21f82bc663c066177
+
+do_install() {
+	for it in pipexec ptee peet; do
+		vbin bin/${it}
+		vman doc/man/${it}.1
+	done
+}
